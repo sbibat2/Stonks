@@ -4,30 +4,30 @@
 # import requests
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as 
+import pandas as pd
 import urllib.request
 import datetime
 import csv
 
 FN = 'TIME_SERIES_INTRADAY'
-SYMBOL = 'IBM'
+# SYMBOL = 'IBM'
 API_KEY = 'E00DIIJTEJSPZ8KZ'
 
 def getApiUrl(fn, symbol):
     return "https://www.alphavantage.co/query?function={fn}&symbol={symbol}&apikey={API_KEY}&datatype=csv".format(fn=fn, symbol=symbol, API_KEY=API_KEY)
 
-def getStonkInfo():
+def getStonkInfo(symbol):
     date = []
     close_price = []
-    url = getApiUrl(FN, SYMBOL)
+    url = getApiUrl(FN, symbol)
     response = urllib.request.urlopen(url)
     lines = [l.decode('utf-8') for l in response.readlines()]
     csv_reader = csv.reader(lines)
 
-
     for line in csv_reader:
-        date.append(datetime.datetime.strptime(line[0], '%m/%d/%Y'))
-        close_price.append(float(line[4]))
+        print(line)
+        # date.append(datetime.datetime.strptime(line[0], '%m/%d/%Y'))
+        # close_price.append(float(line[4]))
 
     return date, close_price
 
@@ -45,10 +45,10 @@ def getStonkInfo():
 # print(date)
 # print(close_price)
 
-def is_cup_with_handle(time_vector, price_vector):
-    date, close_price = getStonkInfo()
+def is_cup_with_handle(symbol):
+    time_vector, price_vector = getStonkInfo(symbol)
 
-    # takes in a time vector (list of dates) and price vector (list of prices)
+    # takes in a ticker symbol
     # returns 0 (not a current cup with handle pattern) or 1 (is a current cup with handle pattern)
 
     window = 3
@@ -84,7 +84,7 @@ def is_cup_with_handle(time_vector, price_vector):
     else:
         return 0
 
-print(is_cup_with_handle(date, close_price))
+print(getStonkInfo('IBM'))
 
 # r = requests.get('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=demo')
 # print(r.status_code)
