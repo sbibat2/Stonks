@@ -5,7 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as 
-import urllib2
+import urllib.request
 import datetime
 import csv
 
@@ -20,9 +20,10 @@ def getStonkInfo():
     date = []
     close_price = []
     url = getApiUrl(FN, SYMBOL)
-    response = urllib2.urlopen(url)
-    csv_reader = csv.reader(response)
-    next(csv_reader)
+    response = urllib.request.urlopen(url)
+    lines = [l.decode('utf-8') for l in response.readlines()]
+    csv_reader = csv.reader(lines)
+
 
     for line in csv_reader:
         date.append(datetime.datetime.strptime(line[0], '%m/%d/%Y'))
