@@ -9,9 +9,10 @@ import urllib.request
 import datetime
 import csv
 
-FN = 'TIME_SERIES_INTRADAY'
+FN = 'TIME_SERIES_DAILY'
 # SYMBOL = 'IBM'
 API_KEY = 'E00DIIJTEJSPZ8KZ'
+symbol_dict = {}
 
 def getApiUrl(fn, symbol):
     return "https://www.alphavantage.co/query?function={fn}&symbol={symbol}&apikey={API_KEY}&datatype=csv".format(fn=fn, symbol=symbol, API_KEY=API_KEY)
@@ -24,28 +25,16 @@ def getStonkInfo(symbol):
     lines = [l.decode('utf-8') for l in response.readlines()]
     csv_reader = csv.reader(lines)
 
+    next(csv_reader)
+
     for line in csv_reader:
-        print(line)
-        # date.append(datetime.datetime.strptime(line[0], '%m/%d/%Y'))
-        # close_price.append(float(line[4]))
+        date.append(datetime.datetime.strptime(line[0], '%Y-%m-%d'))
+        close_price.append(float(line[4]))
 
     return date, close_price
 
-    
-
-# with open('SPCE_cuphandle.csv', 'r') as stock_values:
-#     csv_reader = csv.reader(stock_values)
-
-#     next(csv_reader)
-
-#     for line in csv_reader:
-#         date.append(datetime.datetime.strptime(line[0], '%m/%d/%Y'))
-#         close_price.append(float(line[4]))
-
-# print(date)
-# print(close_price)
-
 def is_cup_with_handle(symbol):
+    days_between_peaks = []
     time_vector, price_vector = getStonkInfo(symbol)
 
     # takes in a ticker symbol
@@ -65,7 +54,7 @@ def is_cup_with_handle(symbol):
     mov_std = mov_std[window - 1:]
 
     # find dates with high means and standard deviations
-    mov_mean_average = np.mean(mov_mean)
+    mov_mean_average = np.mean(price_vector)
     mov_mean = mov_mean / mov_mean_average
     mov_std_average = np.mean(mov_std)
     mov_std = mov_std/mov_std_average
@@ -78,13 +67,31 @@ def is_cup_with_handle(symbol):
         peak_dates.append(time_vector[i])
 
     # check if days between peaks is long enough
+    if len(peak_dates) < 2:
+        return 0
     days_between_peaks = (peak_dates[0]-peak_dates[1]).days
     if days_between_peaks > 25:
         return 1
     else:
         return 0
+def getTickerSymbols():
+    with open('TICKER_SYMBOLS_LIST.csv', 'r') as ticker_symbols_list:
+        ticker_symbols = []
+        csv_reader = csv.reader(ticker_symbols_list)
 
-print(getStonkInfo('IBM'))
+        next(csv_reader)
+
+        for line in csv_reader:
+            ticker_symbols.append(line[0])
+
+    return ticker_symbols
+
+for symbol in getTickerSymbols():
+    symbol_dict[symbol] = {}
+    symbol_dict[symbol]['cup_with_handle'] = is_cup_with_handle(symbol)
+
+print(symbol_dict)
+# print(is_cup_with_handle('SPCE'))
 
 # r = requests.get('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=demo')
 # print(r.status_code)
